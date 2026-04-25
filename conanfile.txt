@@ -1,0 +1,5 @@
+[generators]
+CMakeDeps
+
+[requires]
+gtest/1.17.0

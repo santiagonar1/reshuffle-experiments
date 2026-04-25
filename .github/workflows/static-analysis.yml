@@ -1,0 +1,36 @@
+name: Static Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - main
+
+jobs:
+  cppcheck:
+    name: cppcheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install cppcheck
+        run: |
+          sudo apt update
+          sudo apt install -y cppcheck
+
+      - name: Check cppcheck version
+        run: cppcheck --version
+
+      - name: Run cppcheck
+        run: |
+          cppcheck --enable=warning,style,performance,portability \
+          --std=c++20 \
+          --inconclusive \
+          --error-exitcode=1 \
+          app include src tests

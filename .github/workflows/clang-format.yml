@@ -1,0 +1,41 @@
+name: Format
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - main
+
+jobs:
+  formatting-check:
+    name: Formatting Check - ${{ matrix.path }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - 'app'
+          - 'include'
+          - 'src'
+          - 'tests'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Install clang-format
+        run: pip install "clang-format>=21,<22"
+
+      - name: Run clang-format
+        run: |
+          find ./${{ matrix.path }} -type f \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} +
+          git diff --exit-code
