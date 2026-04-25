@@ -1,3 +1,2 @@
 add_executable(app.out main.cpp)
-target_link_libraries(app.out
-        PRIVATE ${PROJECT_NAME})
+target_compile_features(app.out PUBLIC cxx_std_23)

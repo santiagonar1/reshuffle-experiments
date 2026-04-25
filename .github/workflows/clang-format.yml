@@ -19,8 +19,6 @@ jobs:
       matrix:
         path:
           - 'app'
-          - 'include'
-          - 'src'
 
     steps:
       - name: Check out repository
