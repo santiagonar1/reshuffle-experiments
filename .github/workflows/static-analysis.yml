@@ -33,4 +33,4 @@ jobs:
           --std=c++20 \
           --inconclusive \
           --error-exitcode=1 \
-          app include src tests
+          examples
