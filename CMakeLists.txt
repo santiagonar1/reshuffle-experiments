@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(amazing_app)
+project(reshuffle_experiments)
 
 # Set compiler to use Xcode SDK
 if (APPLE)
