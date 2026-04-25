@@ -15,6 +15,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+find_package(MPI REQUIRED)
+
 add_subdirectory(examples)
 
 
