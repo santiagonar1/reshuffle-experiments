@@ -1,5 +1,8 @@
 #include <iostream>
 
+#include <costa/grid2grid/transform.hpp>
+#include <costa/layout.hpp>
+
 #include <mpi.h>
 
 int main() {

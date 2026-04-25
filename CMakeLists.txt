@@ -15,7 +15,11 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+# Where to find our CMake modules. Needs to be called before any add_subdirectory for them to have access to the variable
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
 find_package(MPI REQUIRED)
+find_package(costa REQUIRED)
 
 add_subdirectory(examples)
 
