@@ -21,7 +21,6 @@ jobs:
           - 'app'
           - 'include'
           - 'src'
-          - 'tests'
 
     steps:
       - name: Check out repository

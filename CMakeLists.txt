@@ -15,8 +15,6 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-option(BUILD_TESTING "Build tests" ON)
-
 file(GLOB SOURCES
         src/*.cpp
 )
@@ -40,12 +38,5 @@ target_include_directories(${PROJECT_NAME}
 )
 
 add_subdirectory(app)
-
-if (BUILD_TESTING)
-    enable_testing()
-    add_subdirectory(tests)
-else ()
-    message(STATUS "Tests and benchmarks will not be compiled")
-endif ()
 
 
