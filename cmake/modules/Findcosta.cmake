@@ -13,6 +13,6 @@ FetchContent_Declare(
         GIT_TAG v2.3.2
 )
 
-set(COSTA_SCALAPACK "CUSTOM" CACHE STRING "ScaLAPACK backend for COSTA (MKL, CRAY_LIBSCI, CUSTOM)")
+set(COSTA_SCALAPACK "OFF" CACHE STRING "ScaLAPACK backend for COSTA (MKL, CRAY_LIBSCI, CUSTOM)")
 
 FetchContent_MakeAvailable(costa)
