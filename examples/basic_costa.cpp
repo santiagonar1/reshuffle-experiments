@@ -100,7 +100,7 @@ int main() {
             submatrix_start[1], global_num_rows, global_num_cols, initial_num_processors_per_row,
             initial_num_processors_per_col, initial_processor_grid_ordering,
             coordinates_initial_rank[0], coordinates_initial_rank[1], &initial_local_data[0],
-            block_size, initial_local_data_ordering, rank);
+            initial_local_values_per_col, initial_local_data_ordering, rank);
 
     // ***************************************
     // INITIALIZE THE INITIAL MATRIX
@@ -136,7 +136,7 @@ int main() {
             submatrix_start[1], global_num_rows, global_num_cols, final_num_processors_per_row,
             final_num_processors_per_col, final_processor_grid_ordering,
             coordinates_initial_rank[0], coordinates_initial_rank[1], &final_local_data[0],
-            block_size, final_local_data_ordering, rank);
+            final_local_values_per_col, final_local_data_ordering, rank);
 
     // ***************************************
     // TRANSFORMING: INITIAL->FINAL
