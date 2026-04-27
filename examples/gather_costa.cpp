@@ -139,9 +139,6 @@ int main() {
     constexpr auto final_local_data_ordering = 'R';
 
 
-    // Note: the block size (and lld) here is the same as the global matrix dimensions. I tried to
-    // use the same one as in the initial layout, but it resulted in incorrect results. This is probably
-    // a bug in COSTA.
     auto final_layout = costa::block_cyclic_layout(
             global_num_rows, global_num_cols, global_num_rows, global_num_cols, submatrix_start[0],
             submatrix_start[1], global_num_rows, global_num_cols, final_num_processors_per_row,
