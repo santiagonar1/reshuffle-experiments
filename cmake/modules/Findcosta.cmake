@@ -9,7 +9,8 @@ message(STATUS "COSTA library NOT found, will download and build")
 
 FetchContent_Declare(
         costa
-        URL https://github.com/eth-cscs/COSTA/archive/refs/heads/master.zip
+        GIT_REPOSITORY https://github.com/eth-cscs/COSTA.git
+        GIT_TAG v2.3.2
 )
 
 set(COSTA_SCALAPACK "CUSTOM" CACHE STRING "ScaLAPACK backend for COSTA (MKL, CRAY_LIBSCI, CUSTOM)")
