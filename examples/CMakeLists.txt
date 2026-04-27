@@ -13,3 +13,11 @@ target_link_libraries(gather_costa.out
         PRIVATE MPI::MPI_CXX
         PRIVATE costa::costa
 )
+
+add_executable(scatter_costa.out scatter_costa.cpp)
+target_compile_features(scatter_costa.out PUBLIC cxx_std_23)
+
+target_link_libraries(scatter_costa.out
+        PRIVATE MPI::MPI_CXX
+        PRIVATE costa::costa
+)
