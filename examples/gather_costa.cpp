@@ -98,7 +98,7 @@ int main() {
 
     constexpr auto initial_processor_grid_ordering = 'R';// row-major ordering
 
-    constexpr auto initial_local_data_ordering = 'R';// column-major ordering
+    constexpr auto initial_local_data_ordering = 'R';// row-major ordering
 
 
     auto initial_layout = costa::block_cyclic_layout(
