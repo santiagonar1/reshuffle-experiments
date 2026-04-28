@@ -2,4 +2,4 @@
 CMakeDeps
 
 [requires]
-gtest/1.17.0
+benchmark/1.9.5
