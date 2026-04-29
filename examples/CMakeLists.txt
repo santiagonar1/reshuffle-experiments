@@ -29,3 +29,11 @@ target_link_libraries(change_block_size_costa.out
         PRIVATE MPI::MPI_CXX
         PRIVATE costa::costa
 )
+
+add_executable(scatter_scalapack.out scatter_scalapack.cpp)
+target_compile_features(scatter_scalapack.out PUBLIC cxx_std_23)
+
+target_link_libraries(scatter_scalapack.out
+        PRIVATE MPI::MPI_CXX
+        PRIVATE SCALAPACK::SCALAPACK
+)
