@@ -21,6 +21,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 find_package(MPI REQUIRED)
 find_package(costa REQUIRED)
 find_package(benchmark REQUIRED)
+find_package(SCALAPACK REQUIRED)
 
 add_subdirectory(examples)
 add_subdirectory(benchmarks)
