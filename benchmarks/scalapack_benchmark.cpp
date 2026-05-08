@@ -126,11 +126,122 @@ void gather_benchmark(benchmark::State &state) {
     }
 }
 
+void scatter_benchmark(benchmark::State &state) {
+    const auto rank = get_rank_id(MPI_COMM_WORLD);
+    constexpr int zero = 0;
+
+    // ***************************************
+    // DESCRIBING THE GLOBAL MATRIX GRID
+    // ***************************************
+    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+
+    // CREATING THE INITIAL CONTEXT
+    // ***************************************
+
+    const int initial_block_size = global_num_values_per_dimension;
+
+    // ***************************************
+    // CREATING THE FINAL CONTEXT
+    // ***************************************
+    constexpr auto final_num_processors_per_dimension = 2;
+
+    const int final_block_size =
+            global_num_values_per_dimension / final_num_processors_per_dimension;
+
+
+    while (state.KeepRunning()) {
+        constexpr auto initial_num_processors_per_dimension = 1;
+
+        int initial_context{};
+        Cblacs_get(0, 0, &initial_context);
+        Cblacs_gridinit(&initial_context, "Row-major", initial_num_processors_per_dimension,
+                        initial_num_processors_per_dimension);
+
+        const auto initial_local_values_per_dimension =
+                rank == 0 ? global_num_values_per_dimension : 0;
+
+        auto initial_local_data = std::vector<SendType>(initial_local_values_per_dimension *
+                                                        initial_local_values_per_dimension);
+
+
+        int final_context{};
+        Cblacs_get(0, 0, &final_context);
+        Cblacs_gridinit(&final_context, "Row-major", final_num_processors_per_dimension,
+                        final_num_processors_per_dimension);
+
+        // Get grid info for destination
+        auto final_rank_coordinates = std::array<int, 2>{};
+
+        int dummy_final_num_processors_per_row{};
+        int dummy_final_num_processors_per_column{};
+
+        Cblacs_gridinfo(final_context, &dummy_final_num_processors_per_row,
+                        &dummy_final_num_processors_per_column, &final_rank_coordinates[0],
+                        &final_rank_coordinates[1]);
+
+        const auto final_local_values_per_row =
+                numroc_(&global_num_values_per_dimension, &final_block_size,
+                        &final_rank_coordinates[0], &zero, &final_num_processors_per_dimension);
+        const auto final_local_values_per_column =
+                numroc_(&global_num_values_per_dimension, &final_block_size,
+                        &final_rank_coordinates[1], &zero, &final_num_processors_per_dimension);
+
+        auto final_local_data =
+                std::vector<SendType>(final_local_values_per_row * final_local_values_per_column);
+
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        // Source descriptor (only rank 0 participates)
+        auto initial_descriptor = std::array<int, 9>{};
+        initial_descriptor[1] = -1;// Invalid context marker
+
+        int info{};
+
+        if (rank == 0) {
+            const int initial_lld = initial_local_values_per_dimension;
+            descinit_(initial_descriptor.data(), &global_num_values_per_dimension,
+                      &global_num_values_per_dimension, &initial_block_size, &initial_block_size,
+                      &zero, &zero, &initial_context, &initial_lld, &info);
+        }
+
+
+        // Destination descriptor and local storage
+        auto final_descriptor = std::array<int, 9>{};
+
+        const int final_lld = final_local_values_per_column;
+        descinit_(final_descriptor.data(), &global_num_values_per_dimension,
+                  &global_num_values_per_dimension, &final_block_size, &final_block_size, &zero,
+                  &zero, &final_context, &final_lld, &info);
+
+        Cpdgemr2d(global_num_values_per_dimension, global_num_values_per_dimension,
+                  initial_local_data.data(), 1, 1, initial_descriptor.data(),
+                  final_local_data.data(), 1, 1, final_descriptor.data(), final_context);
+
+        const auto end = std::chrono::high_resolution_clock::now();
+
+        const auto duration =
+                std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+        const auto elapsed_seconds = duration.count();
+
+        double max_elapsed_second{};
+        MPI_Allreduce(&elapsed_seconds, &max_elapsed_second, 1, MPI_DOUBLE, MPI_MAX,
+                      MPI_COMM_WORLD);
+
+
+        state.SetIterationTime(max_elapsed_second);
+
+        // Cleanup
+        if (final_rank_coordinates[1] >= 0) Cblacs_gridexit(final_context);
+        if (rank == 0) Cblacs_gridexit(initial_context);
+    }
+}
+
 constexpr auto START = 10;
 constexpr auto LIMIT = 100;
 constexpr auto STEP = 10;
 
 BENCHMARK(gather_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(scatter_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
