@@ -5,9 +5,8 @@
 #include <costa/grid2grid/transform.hpp>
 #include <costa/layout.hpp>
 
+#include "benchmark_config.hpp"
 #include "null_reporter.hpp"
-
-using SendType = double;
 
 auto is_root(const MPI_Comm &comm) -> bool;
 auto get_rank_id(const MPI_Comm &comm) -> int;
@@ -48,11 +47,11 @@ void gather_benchmark(benchmark::State &state) {
         constexpr auto local_data_ordering = 'R';
         constexpr auto processor_grid_ordering = 'R';
 
-        auto initial_local_data = std::vector<SendType>(initial_local_values_per_dimension *
-                                                        initial_local_values_per_dimension);
+        auto initial_local_data = std::vector<common::SendType>(initial_local_values_per_dimension *
+                                                                initial_local_values_per_dimension);
 
-        auto final_local_data = std::vector<SendType>(final_local_values_per_dimension *
-                                                      final_local_values_per_dimension);
+        auto final_local_data = std::vector<common::SendType>(final_local_values_per_dimension *
+                                                              final_local_values_per_dimension);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -73,7 +72,7 @@ void gather_benchmark(benchmark::State &state) {
                 processor_grid_ordering, coordinates_initial_rank[0], coordinates_initial_rank[1],
                 &final_local_data[0], final_local_values_per_dimension, local_data_ordering, rank);
 
-        costa::transform<SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
+        costa::transform<common::SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
 
         const auto end = std::chrono::high_resolution_clock::now();
 
@@ -125,11 +124,11 @@ void scatter_benchmark(benchmark::State &state) {
         constexpr auto local_data_ordering = 'R';
         constexpr auto processor_grid_ordering = 'R';
 
-        auto initial_local_data = std::vector<SendType>(initial_local_values_per_dimension *
-                                                        initial_local_values_per_dimension);
+        auto initial_local_data = std::vector<common::SendType>(initial_local_values_per_dimension *
+                                                                initial_local_values_per_dimension);
 
-        auto final_local_data = std::vector<SendType>(final_local_values_per_dimension *
-                                                      final_local_values_per_dimension);
+        auto final_local_data = std::vector<common::SendType>(final_local_values_per_dimension *
+                                                              final_local_values_per_dimension);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -150,7 +149,7 @@ void scatter_benchmark(benchmark::State &state) {
                 processor_grid_ordering, coordinates_initial_rank[0], coordinates_initial_rank[1],
                 &final_local_data[0], final_local_values_per_dimension, local_data_ordering, rank);
 
-        costa::transform<SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
+        costa::transform<common::SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
 
         const auto end = std::chrono::high_resolution_clock::now();
 
@@ -202,11 +201,11 @@ void change_block_size_benchmark(benchmark::State &state) {
         constexpr auto local_data_ordering = 'R';
         constexpr auto processor_grid_ordering = 'R';
 
-        auto initial_local_data = std::vector<SendType>(initial_local_values_per_dimension *
-                                                        initial_local_values_per_dimension);
+        auto initial_local_data = std::vector<common::SendType>(initial_local_values_per_dimension *
+                                                                initial_local_values_per_dimension);
 
-        auto final_local_data = std::vector<SendType>(final_local_values_per_dimension *
-                                                      final_local_values_per_dimension);
+        auto final_local_data = std::vector<common::SendType>(final_local_values_per_dimension *
+                                                              final_local_values_per_dimension);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -227,7 +226,7 @@ void change_block_size_benchmark(benchmark::State &state) {
                 processor_grid_ordering, coordinates_initial_rank[0], coordinates_initial_rank[1],
                 &final_local_data[0], final_local_values_per_dimension, local_data_ordering, rank);
 
-        costa::transform<SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
+        costa::transform<common::SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
 
         const auto end = std::chrono::high_resolution_clock::now();
 

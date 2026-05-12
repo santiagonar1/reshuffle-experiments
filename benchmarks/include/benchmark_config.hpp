@@ -1,0 +1,8 @@
+#ifndef RESHUFFLE_EXPERIMENTS_COMMON_HPP
+#define RESHUFFLE_EXPERIMENTS_COMMON_HPP
+
+namespace common {
+    using SendType = double;
+}
+
+#endif//RESHUFFLE_EXPERIMENTS_COMMON_HPP

@@ -2,9 +2,9 @@
 #include <chrono>
 #include <mpi.h>
 
+#include "benchmark_config.hpp"
 #include "null_reporter.hpp"
 
-using SendType = double;
 
 auto is_root(const MPI_Comm &comm) -> bool;
 auto get_rank_id(const MPI_Comm &comm) -> int;
@@ -70,7 +70,7 @@ void gather_benchmark(benchmark::State &state) {
                         &initial_rank_coordinates[1], &zero, &initial_npcol);
 
         const auto initial_local_data =
-                std::vector<SendType>(initial_local_rows * initial_local_cols);
+                std::vector<common::SendType>(initial_local_rows * initial_local_cols);
 
         constexpr int final_num_processor_per_dimension = 1;
 
@@ -81,7 +81,7 @@ void gather_benchmark(benchmark::State &state) {
 
         const int final_local_dim = rank == 0 ? global_num_values_per_dimension : 0;
 
-        auto final_local_data = std::vector<SendType>(final_local_dim * final_local_dim);
+        auto final_local_data = std::vector<common::SendType>(final_local_dim * final_local_dim);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -160,8 +160,8 @@ void scatter_benchmark(benchmark::State &state) {
         const auto initial_local_values_per_dimension =
                 rank == 0 ? global_num_values_per_dimension : 0;
 
-        auto initial_local_data = std::vector<SendType>(initial_local_values_per_dimension *
-                                                        initial_local_values_per_dimension);
+        auto initial_local_data = std::vector<common::SendType>(initial_local_values_per_dimension *
+                                                                initial_local_values_per_dimension);
 
 
         int final_context{};
@@ -186,8 +186,8 @@ void scatter_benchmark(benchmark::State &state) {
                 numroc_(&global_num_values_per_dimension, &final_block_size,
                         &final_rank_coordinates[1], &zero, &final_num_processors_per_dimension);
 
-        auto final_local_data =
-                std::vector<SendType>(final_local_values_per_row * final_local_values_per_column);
+        auto final_local_data = std::vector<common::SendType>(final_local_values_per_row *
+                                                              final_local_values_per_column);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -291,8 +291,9 @@ void change_block_size_benchmark(benchmark::State &state) {
         const auto final_local_cols = numroc_(&global_num_values_per_dimension, &final_block_size,
                                               &final_rank_coords[1], &zero, &final_num_proc_cols);
 
-        auto initial_local_data = std::vector<SendType>(initial_local_rows * initial_local_cols);
-        auto final_local_data = std::vector<SendType>(final_local_rows * final_local_cols);
+        auto initial_local_data =
+                std::vector<common::SendType>(initial_local_rows * initial_local_cols);
+        auto final_local_data = std::vector<common::SendType>(final_local_rows * final_local_cols);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
