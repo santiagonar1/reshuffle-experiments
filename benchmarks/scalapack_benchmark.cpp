@@ -39,9 +39,8 @@ void gather_benchmark(benchmark::State &state) {
     // ***************************************
     // CREATING THE INITIAL CONTEXT
     // ***************************************
-    constexpr int initial_num_processors_per_dimension = 2;
     const int initial_block_size =
-            global_num_values_per_dimension / initial_num_processors_per_dimension;
+            global_num_values_per_dimension / gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION;
 
 
     auto initial_rank_coordinates = std::array<int, 2>{};
@@ -56,8 +55,8 @@ void gather_benchmark(benchmark::State &state) {
     while (state.KeepRunning()) {
         int initial_context{};
         Cblacs_get(0, 0, &initial_context);
-        Cblacs_gridinit(&initial_context, "Row-major", initial_num_processors_per_dimension,
-                        initial_num_processors_per_dimension);
+        Cblacs_gridinit(&initial_context, "Row-major", gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION,
+                        gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         Cblacs_gridinfo(initial_context, &initial_nprow, &initial_npcol,
                         &initial_rank_coordinates[0], &initial_rank_coordinates[1]);
@@ -72,12 +71,10 @@ void gather_benchmark(benchmark::State &state) {
         const auto initial_local_data =
                 std::vector<common::SendType>(initial_local_rows * initial_local_cols);
 
-        constexpr int final_num_processor_per_dimension = 1;
-
         int final_context{};
         Cblacs_get(0, 0, &final_context);
-        Cblacs_gridinit(&final_context, "Row-major", final_num_processor_per_dimension,
-                        final_num_processor_per_dimension);
+        Cblacs_gridinit(&final_context, "Row-major", gather::FINAL_NUM_PROCESSORS_PER_DIMENSION,
+                        gather::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         const int final_local_dim = rank == 0 ? global_num_values_per_dimension : 0;
 
