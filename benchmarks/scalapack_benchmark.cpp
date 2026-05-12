@@ -241,24 +241,24 @@ void change_block_size_benchmark(benchmark::State &state) {
     // ***************************************
     // INITIAL CONTEXT: 2x2 grid, block size 2
     // ***************************************
-    constexpr auto initial_num_proc_rows = 2;
-    constexpr auto initial_num_proc_cols = 2;
+    constexpr auto initial_num_processors_per_dimension = 2;
+
     constexpr auto initial_block_size = 2;
 
 
     // ***************************************
     // FINAL CONTEXT: 2x2 grid, block size 4
     // ***************************************
-    constexpr auto final_num_proc_rows = 2;
-    constexpr auto final_num_proc_cols = 2;
+    constexpr auto final_num_processors_per_dimension = 2;
+
     constexpr auto final_block_size = 4;
 
 
     while (state.KeepRunning()) {
         int initial_context{};
         Cblacs_get(0, 0, &initial_context);
-        Cblacs_gridinit(&initial_context, "Row-major", initial_num_proc_rows,
-                        initial_num_proc_cols);
+        Cblacs_gridinit(&initial_context, "Row-major", initial_num_processors_per_dimension,
+                        initial_num_processors_per_dimension);
 
         auto initial_rank_coords = std::array<int, 2>{};
         int dummy_nprow{}, dummy_npcol{};
@@ -267,23 +267,26 @@ void change_block_size_benchmark(benchmark::State &state) {
 
         const auto initial_local_rows =
                 numroc_(&global_num_values_per_dimension, &initial_block_size,
-                        &initial_rank_coords[0], &zero, &initial_num_proc_rows);
+                        &initial_rank_coords[0], &zero, &initial_num_processors_per_dimension);
         const auto initial_local_cols =
                 numroc_(&global_num_values_per_dimension, &initial_block_size,
-                        &initial_rank_coords[1], &zero, &initial_num_proc_cols);
+                        &initial_rank_coords[1], &zero, &initial_num_processors_per_dimension);
 
         int final_context{};
         Cblacs_get(0, 0, &final_context);
-        Cblacs_gridinit(&final_context, "Row-major", final_num_proc_rows, final_num_proc_cols);
+        Cblacs_gridinit(&final_context, "Row-major", final_num_processors_per_dimension,
+                        final_num_processors_per_dimension);
 
         auto final_rank_coords = std::array<int, 2>{};
         Cblacs_gridinfo(final_context, &dummy_nprow, &dummy_npcol, &final_rank_coords[0],
                         &final_rank_coords[1]);
 
-        const auto final_local_rows = numroc_(&global_num_values_per_dimension, &final_block_size,
-                                              &final_rank_coords[0], &zero, &final_num_proc_rows);
-        const auto final_local_cols = numroc_(&global_num_values_per_dimension, &final_block_size,
-                                              &final_rank_coords[1], &zero, &final_num_proc_cols);
+        const auto final_local_rows =
+                numroc_(&global_num_values_per_dimension, &final_block_size, &final_rank_coords[0],
+                        &zero, &final_num_processors_per_dimension);
+        const auto final_local_cols =
+                numroc_(&global_num_values_per_dimension, &final_block_size, &final_rank_coords[1],
+                        &zero, &final_num_processors_per_dimension);
 
         auto initial_local_data =
                 std::vector<common::SendType>(initial_local_rows * initial_local_cols);
