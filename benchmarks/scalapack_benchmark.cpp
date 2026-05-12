@@ -238,17 +238,6 @@ void change_block_size_benchmark(benchmark::State &state) {
     // ***************************************
     const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
 
-    // ***************************************
-    // INITIAL CONTEXT: 2x2 grid, block size 2
-    // ***************************************
-    constexpr auto initial_block_size = 2;
-
-
-    // ***************************************
-    // FINAL CONTEXT: 2x2 grid, block size 4
-    // ***************************************
-    constexpr auto final_block_size = 4;
-
 
     while (state.KeepRunning()) {
         int initial_context{};
@@ -262,12 +251,14 @@ void change_block_size_benchmark(benchmark::State &state) {
         Cblacs_gridinfo(initial_context, &dummy_nprow, &dummy_npcol, &initial_rank_coords[0],
                         &initial_rank_coords[1]);
 
-        const auto initial_local_rows = numroc_(
-                &global_num_values_per_dimension, &initial_block_size, &initial_rank_coords[0],
-                &zero, &change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
-        const auto initial_local_cols = numroc_(
-                &global_num_values_per_dimension, &initial_block_size, &initial_rank_coords[1],
-                &zero, &change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto initial_local_rows =
+                numroc_(&global_num_values_per_dimension, &change_block::INITIAL_BLOCK_SIZE,
+                        &initial_rank_coords[0], &zero,
+                        &change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto initial_local_cols =
+                numroc_(&global_num_values_per_dimension, &change_block::INITIAL_BLOCK_SIZE,
+                        &initial_rank_coords[1], &zero,
+                        &change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         int final_context{};
         Cblacs_get(0, 0, &final_context);
@@ -279,12 +270,12 @@ void change_block_size_benchmark(benchmark::State &state) {
         Cblacs_gridinfo(final_context, &dummy_nprow, &dummy_npcol, &final_rank_coords[0],
                         &final_rank_coords[1]);
 
-        const auto final_local_rows =
-                numroc_(&global_num_values_per_dimension, &final_block_size, &final_rank_coords[0],
-                        &zero, &change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
-        const auto final_local_cols =
-                numroc_(&global_num_values_per_dimension, &final_block_size, &final_rank_coords[1],
-                        &zero, &change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto final_local_rows = numroc_(
+                &global_num_values_per_dimension, &change_block::FINAL_BLOCK_SIZE,
+                &final_rank_coords[0], &zero, &change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto final_local_cols = numroc_(
+                &global_num_values_per_dimension, &change_block::FINAL_BLOCK_SIZE,
+                &final_rank_coords[1], &zero, &change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         auto initial_local_data =
                 std::vector<common::SendType>(initial_local_rows * initial_local_cols);
@@ -297,16 +288,17 @@ void change_block_size_benchmark(benchmark::State &state) {
         // LLD = number of local rows (column-major leading dimension)
         const int initial_lld = std::max(1, initial_local_rows);
         descinit_(initial_descriptor.data(), &global_num_values_per_dimension,
-                  &global_num_values_per_dimension, &initial_block_size, &initial_block_size, &zero,
-                  &zero, &initial_context, &initial_lld, &info);
+                  &global_num_values_per_dimension, &change_block::INITIAL_BLOCK_SIZE,
+                  &change_block::INITIAL_BLOCK_SIZE, &zero, &zero, &initial_context, &initial_lld,
+                  &info);
 
 
         auto final_descriptor = std::array<int, 9>{};
         // LLD = number of local rows
         const int final_lld = std::max(1, final_local_rows);
         descinit_(final_descriptor.data(), &global_num_values_per_dimension,
-                  &global_num_values_per_dimension, &final_block_size, &final_block_size, &zero,
-                  &zero, &final_context, &final_lld, &info);
+                  &global_num_values_per_dimension, &change_block::FINAL_BLOCK_SIZE,
+                  &change_block::FINAL_BLOCK_SIZE, &zero, &zero, &final_context, &final_lld, &info);
 
 
         Cpdgemr2d(global_num_values_per_dimension, global_num_values_per_dimension,
