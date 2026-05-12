@@ -242,14 +242,15 @@ void change_block_size_benchmark(benchmark::State &state) {
     }
 }
 
-
-constexpr auto START = 10;
-constexpr auto LIMIT = 100;
-constexpr auto STEP = 10;
-
-BENCHMARK(gather_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
-BENCHMARK(scatter_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
-BENCHMARK(change_block_size_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(gather_benchmark)
+        ->UseManualTime()
+        ->DenseRange(common::START, common::LIMIT, common::STEP);
+BENCHMARK(scatter_benchmark)
+        ->UseManualTime()
+        ->DenseRange(common::START, common::LIMIT, common::STEP);
+BENCHMARK(change_block_size_benchmark)
+        ->UseManualTime()
+        ->DenseRange(common::START, common::LIMIT, common::STEP);
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
