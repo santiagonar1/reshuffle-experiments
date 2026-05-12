@@ -19,4 +19,9 @@ namespace scatter {
     constexpr auto FINAL_NUM_PROCESSORS_PER_DIMENSION = 2;
 }// namespace scatter
 
+namespace change_block {
+    constexpr auto INITIAL_NUM_PROCESSORS_PER_DIMENSION = 2;
+    constexpr auto FINAL_NUM_PROCESSORS_PER_DIMENSION = 2;
+}// namespace change_block
+
 #endif//RESHUFFLE_EXPERIMENTS_COMMON_HPP

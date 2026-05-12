@@ -177,18 +177,15 @@ void change_block_size_benchmark(benchmark::State &state) {
     // ***************************************
     // CREATING THE INITIAL LAYOUT OBJECT
     // ***************************************
-    constexpr auto initial_num_processors_per_dimension = 2;
 
     const auto initial_local_values_per_dimension =
-            global_num_values_per_dimension / initial_num_processors_per_dimension;
+            global_num_values_per_dimension / change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION;
 
     // ***************************************
     // CREATING THE FINAL LAYOUT OBJECT
     // ***************************************
-    constexpr auto final_num_processors_per_dimension = 2;
-
     const auto final_local_values_per_dimension =
-            global_num_values_per_dimension / final_num_processors_per_dimension;
+            global_num_values_per_dimension / change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION;
 
 
     while (state.KeepRunning()) {
@@ -210,18 +207,19 @@ void change_block_size_benchmark(benchmark::State &state) {
                 global_num_values_per_dimension, global_num_values_per_dimension,
                 initial_block_size, initial_block_size, submatrix_start[0], submatrix_start[1],
                 global_num_values_per_dimension, global_num_values_per_dimension,
-                initial_num_processors_per_dimension, initial_num_processors_per_dimension,
-                processor_grid_ordering, coordinates_initial_rank[0], coordinates_initial_rank[1],
-                &initial_local_data[0], initial_local_values_per_dimension, local_data_ordering,
-                rank);
+                change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION,
+                change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION, processor_grid_ordering,
+                coordinates_initial_rank[0], coordinates_initial_rank[1], &initial_local_data[0],
+                initial_local_values_per_dimension, local_data_ordering, rank);
 
         auto final_layout = costa::block_cyclic_layout(
                 global_num_values_per_dimension, global_num_values_per_dimension, final_block_size,
                 final_block_size, submatrix_start[0], submatrix_start[1],
                 global_num_values_per_dimension, global_num_values_per_dimension,
-                final_num_processors_per_dimension, final_num_processors_per_dimension,
-                processor_grid_ordering, coordinates_initial_rank[0], coordinates_initial_rank[1],
-                &final_local_data[0], final_local_values_per_dimension, local_data_ordering, rank);
+                change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION,
+                change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION, processor_grid_ordering,
+                coordinates_initial_rank[0], coordinates_initial_rank[1], &final_local_data[0],
+                final_local_values_per_dimension, local_data_ordering, rank);
 
         costa::transform<common::SendType>(initial_layout, final_layout, MPI_COMM_WORLD);
 
