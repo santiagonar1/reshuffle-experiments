@@ -140,19 +140,16 @@ void scatter_benchmark(benchmark::State &state) {
     // ***************************************
     // CREATING THE FINAL CONTEXT
     // ***************************************
-    constexpr auto final_num_processors_per_dimension = 2;
-
     const int final_block_size =
-            global_num_values_per_dimension / final_num_processors_per_dimension;
+            global_num_values_per_dimension / scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION;
 
 
     while (state.KeepRunning()) {
-        constexpr auto initial_num_processors_per_dimension = 1;
-
         int initial_context{};
         Cblacs_get(0, 0, &initial_context);
-        Cblacs_gridinit(&initial_context, "Row-major", initial_num_processors_per_dimension,
-                        initial_num_processors_per_dimension);
+        Cblacs_gridinit(&initial_context, "Row-major",
+                        scatter::INITIAL_NUM_PROCESSORS_PER_DIMENSION,
+                        scatter::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         const auto initial_local_values_per_dimension =
                 rank == 0 ? global_num_values_per_dimension : 0;
@@ -163,8 +160,8 @@ void scatter_benchmark(benchmark::State &state) {
 
         int final_context{};
         Cblacs_get(0, 0, &final_context);
-        Cblacs_gridinit(&final_context, "Row-major", final_num_processors_per_dimension,
-                        final_num_processors_per_dimension);
+        Cblacs_gridinit(&final_context, "Row-major", scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION,
+                        scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         // Get grid info for destination
         auto final_rank_coordinates = std::array<int, 2>{};
@@ -176,12 +173,12 @@ void scatter_benchmark(benchmark::State &state) {
                         &dummy_final_num_processors_per_column, &final_rank_coordinates[0],
                         &final_rank_coordinates[1]);
 
-        const auto final_local_values_per_row =
-                numroc_(&global_num_values_per_dimension, &final_block_size,
-                        &final_rank_coordinates[0], &zero, &final_num_processors_per_dimension);
-        const auto final_local_values_per_column =
-                numroc_(&global_num_values_per_dimension, &final_block_size,
-                        &final_rank_coordinates[1], &zero, &final_num_processors_per_dimension);
+        const auto final_local_values_per_row = numroc_(
+                &global_num_values_per_dimension, &final_block_size, &final_rank_coordinates[0],
+                &zero, &scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto final_local_values_per_column = numroc_(
+                &global_num_values_per_dimension, &final_block_size, &final_rank_coordinates[1],
+                &zero, &scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         auto final_local_data = std::vector<common::SendType>(final_local_values_per_row *
                                                               final_local_values_per_column);
