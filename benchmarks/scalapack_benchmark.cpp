@@ -2,9 +2,9 @@
 #include <chrono>
 #include <mpi.h>
 
+#include "benchmark_config.hpp"
 #include "null_reporter.hpp"
 
-using SendType = double;
 
 auto is_root(const MPI_Comm &comm) -> bool;
 auto get_rank_id(const MPI_Comm &comm) -> int;
@@ -39,9 +39,8 @@ void gather_benchmark(benchmark::State &state) {
     // ***************************************
     // CREATING THE INITIAL CONTEXT
     // ***************************************
-    constexpr int initial_num_processors_per_dimension = 2;
     const int initial_block_size =
-            global_num_values_per_dimension / initial_num_processors_per_dimension;
+            global_num_values_per_dimension / gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION;
 
 
     auto initial_rank_coordinates = std::array<int, 2>{};
@@ -56,8 +55,8 @@ void gather_benchmark(benchmark::State &state) {
     while (state.KeepRunning()) {
         int initial_context{};
         Cblacs_get(0, 0, &initial_context);
-        Cblacs_gridinit(&initial_context, "Row-major", initial_num_processors_per_dimension,
-                        initial_num_processors_per_dimension);
+        Cblacs_gridinit(&initial_context, "Row-major", gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION,
+                        gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         Cblacs_gridinfo(initial_context, &initial_nprow, &initial_npcol,
                         &initial_rank_coordinates[0], &initial_rank_coordinates[1]);
@@ -70,18 +69,16 @@ void gather_benchmark(benchmark::State &state) {
                         &initial_rank_coordinates[1], &zero, &initial_npcol);
 
         const auto initial_local_data =
-                std::vector<SendType>(initial_local_rows * initial_local_cols);
-
-        constexpr int final_num_processor_per_dimension = 1;
+                std::vector<common::SendType>(initial_local_rows * initial_local_cols);
 
         int final_context{};
         Cblacs_get(0, 0, &final_context);
-        Cblacs_gridinit(&final_context, "Row-major", final_num_processor_per_dimension,
-                        final_num_processor_per_dimension);
+        Cblacs_gridinit(&final_context, "Row-major", gather::FINAL_NUM_PROCESSORS_PER_DIMENSION,
+                        gather::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         const int final_local_dim = rank == 0 ? global_num_values_per_dimension : 0;
 
-        auto final_local_data = std::vector<SendType>(final_local_dim * final_local_dim);
+        auto final_local_data = std::vector<common::SendType>(final_local_dim * final_local_dim);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -143,31 +140,28 @@ void scatter_benchmark(benchmark::State &state) {
     // ***************************************
     // CREATING THE FINAL CONTEXT
     // ***************************************
-    constexpr auto final_num_processors_per_dimension = 2;
-
     const int final_block_size =
-            global_num_values_per_dimension / final_num_processors_per_dimension;
+            global_num_values_per_dimension / scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION;
 
 
     while (state.KeepRunning()) {
-        constexpr auto initial_num_processors_per_dimension = 1;
-
         int initial_context{};
         Cblacs_get(0, 0, &initial_context);
-        Cblacs_gridinit(&initial_context, "Row-major", initial_num_processors_per_dimension,
-                        initial_num_processors_per_dimension);
+        Cblacs_gridinit(&initial_context, "Row-major",
+                        scatter::INITIAL_NUM_PROCESSORS_PER_DIMENSION,
+                        scatter::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         const auto initial_local_values_per_dimension =
                 rank == 0 ? global_num_values_per_dimension : 0;
 
-        auto initial_local_data = std::vector<SendType>(initial_local_values_per_dimension *
-                                                        initial_local_values_per_dimension);
+        auto initial_local_data = std::vector<common::SendType>(initial_local_values_per_dimension *
+                                                                initial_local_values_per_dimension);
 
 
         int final_context{};
         Cblacs_get(0, 0, &final_context);
-        Cblacs_gridinit(&final_context, "Row-major", final_num_processors_per_dimension,
-                        final_num_processors_per_dimension);
+        Cblacs_gridinit(&final_context, "Row-major", scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION,
+                        scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         // Get grid info for destination
         auto final_rank_coordinates = std::array<int, 2>{};
@@ -179,15 +173,15 @@ void scatter_benchmark(benchmark::State &state) {
                         &dummy_final_num_processors_per_column, &final_rank_coordinates[0],
                         &final_rank_coordinates[1]);
 
-        const auto final_local_values_per_row =
-                numroc_(&global_num_values_per_dimension, &final_block_size,
-                        &final_rank_coordinates[0], &zero, &final_num_processors_per_dimension);
-        const auto final_local_values_per_column =
-                numroc_(&global_num_values_per_dimension, &final_block_size,
-                        &final_rank_coordinates[1], &zero, &final_num_processors_per_dimension);
+        const auto final_local_values_per_row = numroc_(
+                &global_num_values_per_dimension, &final_block_size, &final_rank_coordinates[0],
+                &zero, &scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto final_local_values_per_column = numroc_(
+                &global_num_values_per_dimension, &final_block_size, &final_rank_coordinates[1],
+                &zero, &scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
-        auto final_local_data =
-                std::vector<SendType>(final_local_values_per_row * final_local_values_per_column);
+        auto final_local_data = std::vector<common::SendType>(final_local_values_per_row *
+                                                              final_local_values_per_column);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -244,27 +238,13 @@ void change_block_size_benchmark(benchmark::State &state) {
     // ***************************************
     const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
 
-    // ***************************************
-    // INITIAL CONTEXT: 2x2 grid, block size 2
-    // ***************************************
-    constexpr auto initial_num_proc_rows = 2;
-    constexpr auto initial_num_proc_cols = 2;
-    constexpr auto initial_block_size = 2;
-
-
-    // ***************************************
-    // FINAL CONTEXT: 2x2 grid, block size 4
-    // ***************************************
-    constexpr auto final_num_proc_rows = 2;
-    constexpr auto final_num_proc_cols = 2;
-    constexpr auto final_block_size = 4;
-
 
     while (state.KeepRunning()) {
         int initial_context{};
         Cblacs_get(0, 0, &initial_context);
-        Cblacs_gridinit(&initial_context, "Row-major", initial_num_proc_rows,
-                        initial_num_proc_cols);
+        Cblacs_gridinit(&initial_context, "Row-major",
+                        change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION,
+                        change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         auto initial_rank_coords = std::array<int, 2>{};
         int dummy_nprow{}, dummy_npcol{};
@@ -272,27 +252,34 @@ void change_block_size_benchmark(benchmark::State &state) {
                         &initial_rank_coords[1]);
 
         const auto initial_local_rows =
-                numroc_(&global_num_values_per_dimension, &initial_block_size,
-                        &initial_rank_coords[0], &zero, &initial_num_proc_rows);
+                numroc_(&global_num_values_per_dimension, &change_block::INITIAL_BLOCK_SIZE,
+                        &initial_rank_coords[0], &zero,
+                        &change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
         const auto initial_local_cols =
-                numroc_(&global_num_values_per_dimension, &initial_block_size,
-                        &initial_rank_coords[1], &zero, &initial_num_proc_cols);
+                numroc_(&global_num_values_per_dimension, &change_block::INITIAL_BLOCK_SIZE,
+                        &initial_rank_coords[1], &zero,
+                        &change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
 
         int final_context{};
         Cblacs_get(0, 0, &final_context);
-        Cblacs_gridinit(&final_context, "Row-major", final_num_proc_rows, final_num_proc_cols);
+        Cblacs_gridinit(&final_context, "Row-major",
+                        change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION,
+                        change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
         auto final_rank_coords = std::array<int, 2>{};
         Cblacs_gridinfo(final_context, &dummy_nprow, &dummy_npcol, &final_rank_coords[0],
                         &final_rank_coords[1]);
 
-        const auto final_local_rows = numroc_(&global_num_values_per_dimension, &final_block_size,
-                                              &final_rank_coords[0], &zero, &final_num_proc_rows);
-        const auto final_local_cols = numroc_(&global_num_values_per_dimension, &final_block_size,
-                                              &final_rank_coords[1], &zero, &final_num_proc_cols);
+        const auto final_local_rows = numroc_(
+                &global_num_values_per_dimension, &change_block::FINAL_BLOCK_SIZE,
+                &final_rank_coords[0], &zero, &change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
+        const auto final_local_cols = numroc_(
+                &global_num_values_per_dimension, &change_block::FINAL_BLOCK_SIZE,
+                &final_rank_coords[1], &zero, &change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
-        auto initial_local_data = std::vector<SendType>(initial_local_rows * initial_local_cols);
-        auto final_local_data = std::vector<SendType>(final_local_rows * final_local_cols);
+        auto initial_local_data =
+                std::vector<common::SendType>(initial_local_rows * initial_local_cols);
+        auto final_local_data = std::vector<common::SendType>(final_local_rows * final_local_cols);
 
         const auto start = std::chrono::high_resolution_clock::now();
 
@@ -301,16 +288,17 @@ void change_block_size_benchmark(benchmark::State &state) {
         // LLD = number of local rows (column-major leading dimension)
         const int initial_lld = std::max(1, initial_local_rows);
         descinit_(initial_descriptor.data(), &global_num_values_per_dimension,
-                  &global_num_values_per_dimension, &initial_block_size, &initial_block_size, &zero,
-                  &zero, &initial_context, &initial_lld, &info);
+                  &global_num_values_per_dimension, &change_block::INITIAL_BLOCK_SIZE,
+                  &change_block::INITIAL_BLOCK_SIZE, &zero, &zero, &initial_context, &initial_lld,
+                  &info);
 
 
         auto final_descriptor = std::array<int, 9>{};
         // LLD = number of local rows
         const int final_lld = std::max(1, final_local_rows);
         descinit_(final_descriptor.data(), &global_num_values_per_dimension,
-                  &global_num_values_per_dimension, &final_block_size, &final_block_size, &zero,
-                  &zero, &final_context, &final_lld, &info);
+                  &global_num_values_per_dimension, &change_block::FINAL_BLOCK_SIZE,
+                  &change_block::FINAL_BLOCK_SIZE, &zero, &zero, &final_context, &final_lld, &info);
 
 
         Cpdgemr2d(global_num_values_per_dimension, global_num_values_per_dimension,
@@ -335,12 +323,15 @@ void change_block_size_benchmark(benchmark::State &state) {
     }
 }
 
-constexpr auto START = 10;
-constexpr auto LIMIT = 100;
-constexpr auto STEP = 10;
-
-BENCHMARK(gather_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
-BENCHMARK(scatter_benchmark)->UseManualTime()->DenseRange(START, LIMIT, STEP);
+BENCHMARK(gather_benchmark)
+        ->UseManualTime()
+        ->DenseRange(common::START, common::LIMIT, common::STEP);
+BENCHMARK(scatter_benchmark)
+        ->UseManualTime()
+        ->DenseRange(common::START, common::LIMIT, common::STEP);
+BENCHMARK(change_block_size_benchmark)
+        ->UseManualTime()
+        ->DenseRange(common::START, common::LIMIT, common::STEP);
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
