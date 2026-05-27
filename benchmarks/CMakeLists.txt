@@ -21,3 +21,14 @@ target_link_libraries(scalapack_benchmark.out
 target_include_directories(scalapack_benchmark.out
         PRIVATE include
 )
+
+add_executable(reshuffle_benchmark.out reshuffle_benchmark.cpp)
+target_link_libraries(reshuffle_benchmark.out
+        PRIVATE reshuffle::reshuffle
+        PRIVATE MPI::MPI_CXX
+        PRIVATE benchmark::benchmark
+)
+
+target_include_directories(reshuffle_benchmark.out
+        PRIVATE include
+)

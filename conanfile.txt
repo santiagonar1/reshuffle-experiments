@@ -3,3 +3,4 @@ CMakeDeps
 
 [requires]
 benchmark/1.9.5
+zpp_bits/4.4.25
