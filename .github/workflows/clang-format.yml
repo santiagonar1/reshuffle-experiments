@@ -19,6 +19,7 @@ jobs:
       matrix:
         path:
           - 'examples'
+          - 'benchmarks'
 
     steps:
       - name: Check out repository
