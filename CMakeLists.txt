@@ -22,6 +22,7 @@ find_package(MPI REQUIRED)
 find_package(costa REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(SCALAPACK REQUIRED)
+find_package(reshuffle REQUIRED)
 
 add_subdirectory(examples)
 add_subdirectory(benchmarks)
