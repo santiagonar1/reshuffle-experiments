@@ -35,7 +35,8 @@ void gather_benchmark(benchmark::State &state) {
     // ***************************************
     // DESCRIBING THE GLOBAL MATRIX GRID
     // ***************************************
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            gather::get_num_divisible_between_num_procs(state.range(0));
 
     // ***************************************
     // CREATING THE INITIAL CONTEXT
@@ -131,7 +132,8 @@ void scatter_benchmark(benchmark::State &state) {
     // ***************************************
     // DESCRIBING THE GLOBAL MATRIX GRID
     // ***************************************
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            scatter::get_num_divisible_between_num_procs(state.range(0));
 
     // CREATING THE INITIAL CONTEXT
     // ***************************************
@@ -237,7 +239,8 @@ void change_block_size_benchmark(benchmark::State &state) {
     // ***************************************
     // DESCRIBING THE GLOBAL MATRIX GRID
     // ***************************************
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            change_block::get_num_divisible_between_num_procs(state.range(0));
 
 
     while (state.KeepRunning()) {

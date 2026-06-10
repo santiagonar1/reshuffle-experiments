@@ -13,7 +13,8 @@ auto get_rank_id(const MPI_Comm &comm) -> int;
 auto get_num_ranks(const MPI_Comm &comm) -> int;
 
 void gather_benchmark(benchmark::State &state) {
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            gather::get_num_divisible_between_num_procs(state.range(0));
     const auto global_dimensions =
             reshuffle::Dimensions{global_num_values_per_dimension, global_num_values_per_dimension};
 
@@ -71,7 +72,8 @@ void gather_benchmark(benchmark::State &state) {
 void scatter_benchmark(benchmark::State &state) {
     const auto rank = get_rank_id(MPI_COMM_WORLD);
 
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            scatter::get_num_divisible_between_num_procs(state.range(0));
     const auto global_dimensions =
             reshuffle::Dimensions{global_num_values_per_dimension, global_num_values_per_dimension};
 
@@ -130,7 +132,8 @@ void scatter_benchmark(benchmark::State &state) {
 }
 
 void change_block_size_benchmark(benchmark::State &state) {
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            change_block::get_num_divisible_between_num_procs(state.range(0));
     const auto global_dimensions =
             reshuffle::Dimensions{global_num_values_per_dimension, global_num_values_per_dimension};
 
