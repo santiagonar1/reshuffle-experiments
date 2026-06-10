@@ -4,6 +4,8 @@
 namespace common {
     using SendType = double;
 
+    constexpr auto EXPECTED_NUM_PROCESSORS = 4;
+
     constexpr auto START = 10;
     constexpr auto LIMIT = 100;
     constexpr auto STEP = 10;

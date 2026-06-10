@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <chrono>
+#include <iostream>
 #include <mpi.h>
 
 #include "benchmark_config.hpp"
@@ -335,6 +336,13 @@ BENCHMARK(change_block_size_benchmark)
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
+
+    if (const auto num_procs = get_num_ranks(MPI_COMM_WORLD);
+        num_procs != common::EXPECTED_NUM_PROCESSORS) {
+        std::cerr << "ERROR: Expected " << common::EXPECTED_NUM_PROCESSORS << " processes, got "
+                  << num_procs << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     benchmark::Initialize(&argc, argv);
 
