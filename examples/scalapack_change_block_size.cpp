@@ -46,7 +46,7 @@ auto execute_sequentially(const std::function<void()> &f, MPI_Comm comm) -> void
 }
 
 template<typename Extents>
-auto print_matrix(std::mdspan<const double, Extents> values, const int rank) -> void {
+auto print_matrix_for_rank(std::mdspan<const double, Extents> values, const int rank) -> void {
     std::cout << "Rank: " << rank << std::endl;
 
     if (values.empty()) {
@@ -67,7 +67,7 @@ template<typename Extents>
 auto print_matrix(std::mdspan<const double, Extents> values, MPI_Comm comm) -> void {
     int rank{};
     MPI_Comm_rank(comm, &rank);
-    execute_sequentially([values, rank]() { print_matrix(values, rank); }, comm);
+    execute_sequentially([values, rank]() { print_matrix_for_rank(values, rank); }, comm);
     MPI_Barrier(comm);
 }
 
