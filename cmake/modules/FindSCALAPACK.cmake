@@ -9,7 +9,7 @@ endif ()
 # If pkg-config didn't work, try direct path
 if (NOT SCALAPACK_FOUND)
     find_library(SCALAPACK_LIBRARIES
-            NAMES scalapack scalapack-openmpi
+            NAMES scalapack scalapack-openmpi scalapack-mpich
             HINTS
             ENV SCALAPACK_ROOT
             ENV SCALAPACK_PREFIX
