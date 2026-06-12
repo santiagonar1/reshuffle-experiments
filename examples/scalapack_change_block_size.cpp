@@ -1,10 +1,11 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <mdspan>
 #include <mpi.h>
 #include <ranges>
 #include <vector>
+
+#include "mdspan.hpp"
 
 // BLACS declarations
 extern "C" {

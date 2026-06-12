@@ -1,11 +1,12 @@
 #include <functional>
 #include <iostream>
-#include <mdspan>
 
 #include <costa/grid2grid/transform.hpp>
 #include <costa/layout.hpp>
 
 #include <mpi.h>
+
+#include "mdspan.hpp"
 
 auto execute_sequentially(const std::function<void()> &f, MPI_Comm comm) -> void {
     int rank{};

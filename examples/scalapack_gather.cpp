@@ -3,9 +3,10 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <mdspan>
 #include <mpi.h>
 #include <vector>
+
+#include "mdspan.hpp"
 
 extern "C" {
 void Cblacs_pinfo(int *mypnum, int *nprocs);
