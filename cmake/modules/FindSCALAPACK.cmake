@@ -36,3 +36,10 @@ if (SCALAPACK_FOUND AND NOT TARGET SCALAPACK::SCALAPACK)
         )
     endif ()
 endif ()
+
+if (SCALAPACK_FOUND)
+    message(STATUS "Found ScaLAPACK: ${SCALAPACK_LIBRARIES}")
+else ()
+    message(WARNING "ScaLAPACK not found. Please install libscalapack-mpi-dev "
+            "or set SCALAPACK_ROOT to the installation prefix.")
+endif ()
