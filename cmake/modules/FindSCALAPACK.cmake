@@ -20,6 +20,7 @@ endif ()
 
 find_package_handle_standard_args(SCALAPACK
         REQUIRED_VARS SCALAPACK_LIBRARIES
+        FOUND_VAR SCALAPACK_FOUND
 )
 
 # Create imported target for modern CMake usage
