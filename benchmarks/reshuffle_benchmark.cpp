@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <chrono>
+#include <iostream>
 #include <mpi.h>
 
 #include <reshuffle.hpp>
@@ -12,7 +13,8 @@ auto get_rank_id(const MPI_Comm &comm) -> int;
 auto get_num_ranks(const MPI_Comm &comm) -> int;
 
 void gather_benchmark(benchmark::State &state) {
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            gather::get_num_divisible_between_num_procs(state.range(0));
     const auto global_dimensions =
             reshuffle::Dimensions{global_num_values_per_dimension, global_num_values_per_dimension};
 
@@ -70,7 +72,8 @@ void gather_benchmark(benchmark::State &state) {
 void scatter_benchmark(benchmark::State &state) {
     const auto rank = get_rank_id(MPI_COMM_WORLD);
 
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            scatter::get_num_divisible_between_num_procs(state.range(0));
     const auto global_dimensions =
             reshuffle::Dimensions{global_num_values_per_dimension, global_num_values_per_dimension};
 
@@ -129,7 +132,8 @@ void scatter_benchmark(benchmark::State &state) {
 }
 
 void change_block_size_benchmark(benchmark::State &state) {
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            change_block::get_num_divisible_between_num_procs(state.range(0));
     const auto global_dimensions =
             reshuffle::Dimensions{global_num_values_per_dimension, global_num_values_per_dimension};
 
@@ -208,6 +212,13 @@ BENCHMARK(change_block_size_benchmark)
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
+
+    if (const auto num_procs = get_num_ranks(MPI_COMM_WORLD);
+        num_procs != common::EXPECTED_NUM_PROCESSORS) {
+        std::cerr << "ERROR: Expected " << common::EXPECTED_NUM_PROCESSORS << " processes, got "
+                  << num_procs << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     benchmark::Initialize(&argc, argv);
 

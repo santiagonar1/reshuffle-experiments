@@ -3,9 +3,10 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <mdspan>
 #include <mpi.h>
 #include <vector>
+
+#include "mdspan.hpp"
 
 extern "C" {
 void Cblacs_pinfo(int *mypnum, int *nprocs);
@@ -45,7 +46,7 @@ auto execute_sequentially(const std::function<void()> &f, MPI_Comm comm) -> void
 }
 
 template<typename Extents>
-auto print_matrix(std::mdspan<const double, Extents> values, const int rank) -> void {
+auto print_matrix_for_rank(std::mdspan<const double, Extents> values, const int rank) -> void {
     std::cout << "Rank: " << rank << std::endl;
 
     if (values.empty()) {
@@ -66,7 +67,7 @@ auto print_matrix(std::mdspan<const double, Extents> values, MPI_Comm comm) -> v
     int rank{};
     MPI_Comm_rank(comm, &rank);
 
-    auto print_function = [values, rank]() -> void { print_matrix(values, rank); };
+    auto print_function = [values, rank]() -> void { print_matrix_for_rank(values, rank); };
     execute_sequentially(print_function, comm);
 
     MPI_Barrier(comm);

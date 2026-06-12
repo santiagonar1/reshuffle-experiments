@@ -1,8 +1,12 @@
 #ifndef RESHUFFLE_EXPERIMENTS_COMMON_HPP
 #define RESHUFFLE_EXPERIMENTS_COMMON_HPP
 
+#include <cmath>
+
 namespace common {
     using SendType = double;
+
+    constexpr auto EXPECTED_NUM_PROCESSORS = 4;
 
     constexpr auto START = 10;
     constexpr auto LIMIT = 100;
@@ -12,11 +16,21 @@ namespace common {
 namespace gather {
     constexpr auto INITIAL_NUM_PROCESSORS_PER_DIMENSION = 2;
     constexpr auto FINAL_NUM_PROCESSORS_PER_DIMENSION = 1;
+
+    constexpr int get_num_divisible_between_num_procs(const std::size_t min_num_values) {
+        return INITIAL_NUM_PROCESSORS_PER_DIMENSION *
+               static_cast<int>(std::ceil(min_num_values / INITIAL_NUM_PROCESSORS_PER_DIMENSION));
+    }
 }// namespace gather
 
 namespace scatter {
     constexpr auto INITIAL_NUM_PROCESSORS_PER_DIMENSION = 1;
     constexpr auto FINAL_NUM_PROCESSORS_PER_DIMENSION = 2;
+
+    constexpr int get_num_divisible_between_num_procs(const std::size_t min_num_values) {
+        return FINAL_NUM_PROCESSORS_PER_DIMENSION *
+               static_cast<int>(std::ceil(min_num_values / FINAL_NUM_PROCESSORS_PER_DIMENSION));
+    }
 }// namespace scatter
 
 namespace change_block {
@@ -24,6 +38,24 @@ namespace change_block {
     constexpr auto FINAL_NUM_PROCESSORS_PER_DIMENSION = 2;
     constexpr auto INITIAL_BLOCK_SIZE = 5;
     constexpr auto FINAL_BLOCK_SIZE = 10;
+
+    constexpr int get_num_divisible_between_num_procs(const std::size_t min_num_values) {
+        return FINAL_NUM_PROCESSORS_PER_DIMENSION *
+               static_cast<int>(std::ceil(min_num_values / FINAL_NUM_PROCESSORS_PER_DIMENSION));
+    }
 }// namespace change_block
+
+
+static_assert(common::EXPECTED_NUM_PROCESSORS ==
+              gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION *
+                      gather::INITIAL_NUM_PROCESSORS_PER_DIMENSION);
+
+static_assert(common::EXPECTED_NUM_PROCESSORS ==
+              scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION *
+                      scatter::FINAL_NUM_PROCESSORS_PER_DIMENSION);
+
+static_assert(common::EXPECTED_NUM_PROCESSORS ==
+              change_block::INITIAL_NUM_PROCESSORS_PER_DIMENSION *
+                      change_block::FINAL_NUM_PROCESSORS_PER_DIMENSION);
 
 #endif//RESHUFFLE_EXPERIMENTS_COMMON_HPP

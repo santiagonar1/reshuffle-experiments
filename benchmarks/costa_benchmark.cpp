@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <chrono>
+#include <iostream>
 #include <mpi.h>
 
 #include <costa/grid2grid/transform.hpp>
@@ -18,7 +19,8 @@ void gather_benchmark(benchmark::State &state) {
     // ***************************************
     // DESCRIBING THE GLOBAL MATRIX GRID
     // ***************************************
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            gather::get_num_divisible_between_num_procs(state.range(0));
 
     constexpr auto submatrix_start = std::array{1, 1};// (1-based, required by costa)
     constexpr auto coordinates_initial_rank = std::array{0, 0};
@@ -93,7 +95,8 @@ void scatter_benchmark(benchmark::State &state) {
     // ***************************************
     // DESCRIBING THE GLOBAL MATRIX GRID
     // ***************************************
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            scatter::get_num_divisible_between_num_procs(state.range(0));
 
     constexpr auto submatrix_start = std::array{1, 1};// (1-based, required by costa)
     constexpr auto coordinates_initial_rank = std::array{0, 0};
@@ -168,7 +171,8 @@ void change_block_size_benchmark(benchmark::State &state) {
     // ***************************************
     // DESCRIBING THE GLOBAL MATRIX GRID
     // ***************************************
-    const auto global_num_values_per_dimension = static_cast<int>(state.range(0));
+    const auto global_num_values_per_dimension =
+            change_block::get_num_divisible_between_num_procs(state.range(0));
 
     constexpr auto submatrix_start = std::array{1, 1};// (1-based, required by costa)
     constexpr auto coordinates_initial_rank = std::array{0, 0};
@@ -246,6 +250,13 @@ BENCHMARK(change_block_size_benchmark)
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
+
+    if (const auto num_procs = get_num_ranks(MPI_COMM_WORLD);
+        num_procs != common::EXPECTED_NUM_PROCESSORS) {
+        std::cerr << "ERROR: Expected " << common::EXPECTED_NUM_PROCESSORS << " processes, got "
+                  << num_procs << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     benchmark::Initialize(&argc, argv);
 
